@@ -25,9 +25,9 @@ namespace toy_nn_csharp
             internal Func<double, double> y;
         }
 
-        int InputNodes { get; }
-        int HiddenNodes { get;  }
-        int OutputNodes { get; }
+        public int InputNodes { get; }
+        public int HiddenNodes { get;  }
+        public int OutputNodes { get; }
 
         Matrix<double> WeightsIh;
         Matrix<double> WeightsHo;
@@ -37,7 +37,7 @@ namespace toy_nn_csharp
         ActivationFunction aFunction { get; set; } = ActivationFunctions.Sigmoid;
 
 
-        private double learningRate = 0.1;
+        double learningRate = 0.1;
 
         public NeuralNetwork(int input, int hidden, int output) {
             InputNodes = input;
