@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Drawing;
-using toy_nn_core.toynncore;
+using toynncore;
 using Console = Colorful.Console;
 
 namespace xor_console
@@ -62,21 +62,12 @@ namespace xor_console
                 {
                     for (var y = 0; y <= cols; y++)
                     {
-                        //Debug.WriteLine(x/Rows);
                         var x1 = Math.Round(x / rows);
                         var x2 = Math.Round(y / cols);
                         var outputs = nn.Predict(x1, x2);
-                        //Debug.WriteLine($"Inputs: {String.Join(",",inputs)}");
-                        //Debug.WriteLine($"Outputs: {String.Join(",", outputs)}");
                         var c = (int) (outputs[0] * 255);
-                        // Console.BackgroundColor = Color.FromArgb(c,c,c);
-
                         Console.Write($"{c,3:D} ", Color.FromArgb(c, Color.White));
-                        //Console.Write($"{(c)},{(x2):00} ", Color.FromArgb(c,c,c));
-                        //Console.Write("■", Color.FromArgb(c));
                     }
-
-                    Console.WriteLine();
                     Console.WriteLine();
                 }
 
