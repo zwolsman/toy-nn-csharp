@@ -1,12 +1,10 @@
 ﻿using System;
 using MathNet.Numerics.LinearAlgebra;
 
-
 namespace toynncore
 {
     public class NeuralNetwork
     {
-       
         private readonly double learningRate = 0.1;
         private readonly Random random = new Random();
         private Matrix<double> WeightsHo;
@@ -99,7 +97,7 @@ namespace toynncore
 
             public static ActivationFunction TanH = new ActivationFunction(
                 Math.Tanh,
-                y => 1 - y * y
+                y => 1 - (y * y)
             );
         }
 
