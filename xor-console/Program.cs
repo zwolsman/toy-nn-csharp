@@ -1,73 +1,87 @@
 ﻿using System;
-using Console = Colorful.Console;
+using System.Diagnostics;
 using System.Drawing;
 using toy_nn_core.toynncore;
-using System.Diagnostics;
+using Console = Colorful.Console;
 
 namespace xor_console
 {
-    class TrainingData {
-        public double[] inputs { get; set; }
-        public double[] targets { get; set; }
+    internal class TrainingData
+    {
+        public double[] Inputs { get; set; }
+
+        public double[] Targets { get; set; }
     }
 
-    class Program
+    internal class Program
     {
+        private static readonly TrainingData[] _trainings =
+        {
+            new TrainingData
+            {
+                Inputs = new[] {0.0, 0.0},
+                Targets = new[] {0.0}
+            },
+            new TrainingData
+            {
+                Inputs = new[] {1.0, 0.0},
+                Targets = new[] {1.0}
+            },
+            new TrainingData
+            {
+                Inputs = new[] {0.0, 1.0},
+                Targets = new[] {1.0}
+            },
+            new TrainingData
+            {
+                Inputs = new[] {1.0, 1.0},
+                Targets = new[] {0.0}
+            }
+        };
 
-        const int Rows = 10;
-        const int Cols = 10;
-
-
-        static TrainingData[] trainings = new[] {
-                new TrainingData {
-                    inputs = new[] {0.0, 0.0},
-                    targets = new[] {0.0}
-                },
-                new TrainingData {
-                    inputs = new[] {1.0, 0.0},
-                    targets = new[] {1.0}
-                },
-                new TrainingData {
-                    inputs = new[] {0.0, 1.0},
-                    targets = new[] {1.0}
-                },
-                new TrainingData {
-                    inputs = new[] {1.0, 1.0},
-                    targets = new[] {0.0}
-                },
-            };
-
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
             var nn = new NeuralNetwork(2, 4, 1);
             var rng = new Random();
-            while(true)
+
+
+            var rows = 10.0;
+            var cols = 10.0;
+
+            while (true)
             {
-                for (int i = 0; i < 10; i++) {
-                    var training = trainings[rng.Next(trainings.Length)];
-                    nn.Train(training.inputs, training.targets);
-                }
-               
-                for (int x = 0; x <= Rows; x++)
+                for (var i = 0; i < 10; i++)
                 {
-                    for (int y = 0; y <= Cols; y++)
+                    var training = _trainings[rng.Next(_trainings.Length)];
+                    var gradient = nn.Train(training.Inputs, training.Targets);
+
+                    Debug.WriteLine(gradient);
+                }
+
+                for (var x = 0; x <= rows; x++)
+                {
+                    for (var y = 0; y <= cols; y++)
                     {
                         //Debug.WriteLine(x/Rows);
-                        double x1 = x / Rows;
-                        double x2 = y / Cols;
-                        var inputs = new[] { x1, x2 };
-                        var outputs = nn.Predict(inputs);
+                        var x1 = Math.Round(x / rows);
+                        var x2 = Math.Round(y / cols);
+                        var outputs = nn.Predict(x1, x2);
                         //Debug.WriteLine($"Inputs: {String.Join(",",inputs)}");
                         //Debug.WriteLine($"Outputs: {String.Join(",", outputs)}");
-                        var c = (int)(outputs[0] * 255);
-                        Console.BackgroundColor = Color.FromArgb(c);
-                        Console.Write(String.Format("{0,3:D}", c) + " ", Color.Purple);
+                        var c = (int) (outputs[0] * 255);
+                        // Console.BackgroundColor = Color.FromArgb(c,c,c);
+
+                        Console.Write($"{c,3:D} ", Color.FromArgb(c, Color.White));
+                        //Console.Write($"{(c)},{(x2):00} ", Color.FromArgb(c,c,c));
                         //Console.Write("■", Color.FromArgb(c));
                     }
+
+                    Console.WriteLine();
                     Console.WriteLine();
                 }
-                Console.CursorTop = 0;
+
                 Console.CursorLeft = 0;
+                Console.CursorTop = 0;
             }
         }
     }
