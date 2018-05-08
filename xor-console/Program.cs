@@ -8,13 +8,6 @@ using Console = Colorful.Console;
 
 namespace xor_console
 {
-    internal class TrainingData
-    {
-        public double[] Inputs { get; set; }
-
-        public double[] Targets { get; set; }
-    }
-
     internal class Program
     {
         private static readonly IReadOnlyList<TrainingData> _trainings = new[]
@@ -81,6 +74,13 @@ namespace xor_console
                 Console.CursorLeft = 0;
                 Console.CursorTop = resetTop;
             }
+        }
+
+        private class TrainingData
+        {
+            public double[] Inputs { get; set; }
+
+            public double[] Targets { get; set; }
         }
     }
 }
