@@ -9,6 +9,7 @@ namespace toynncore
     {
         private const double LEARNING_RATE = 0.1;
 
+        private readonly ActivationFunction _activationFunction = ActivationFunction.Sigmoid;
         private readonly Random _random = new Random();
         private readonly Matrix<double>[] _weights;
         private readonly Matrix<double>[] _biases;
@@ -35,8 +36,6 @@ namespace toynncore
         
         private int OutputNodes => _layers.Last();
 
-        private ActivationFunction _activationFunction { get; } = ActivationFunctions.Sigmoid;
-
         public double[] Predict(params double[] inputsArray)
         {
             if (inputsArray.Length != InputNodes)
@@ -47,7 +46,7 @@ namespace toynncore
             {
                 var weight = _weights[i];
                 var bias = _biases[i];
-                var layer = ((weight * outputs) + bias).Map(_activationFunction.func);
+                var layer = ((weight * outputs) + bias).Map(_activationFunction.FunctionX);
                 outputs = layer;
             }
             return outputs.Column(0).ToArray();
@@ -71,7 +70,7 @@ namespace toynncore
                 var weight = _weights[i - 1];
                 var bias = _biases[i - 1];
                 var layer = (weight * inputs) + bias;
-                layer.Map(_activationFunction.func, layer);
+                layer.Map(_activationFunction.FunctionX, layer);
 
                 layers[i] = layer;
                 inputs = layer;
@@ -81,7 +80,7 @@ namespace toynncore
             {
                 var errors = targets - layers[i];
 
-                var gradients = layers[i].Map(_activationFunction.fund).PointwiseMultiply(errors) * LEARNING_RATE;
+                var gradients = layers[i].Map(_activationFunction.FunctionX).PointwiseMultiply(errors) * LEARNING_RATE;
                 var deltas = gradients * layers[i - 1].Transpose();
 
                 _biases[i - 1] += gradients;
@@ -97,9 +96,9 @@ namespace toynncore
             return (_random.NextDouble() * 2) - 1;
         }
 
-        static class ActivationFunctions
+        private class ActivationFunction
         {
-            public static readonly ActivationFunction Sigmoid = new ActivationFunction(
+            public static ActivationFunction Sigmoid = new ActivationFunction(
                 x => 1 / (1 + Math.Exp(-x)),
                 y => y * (1 - y)
             );
@@ -108,17 +107,15 @@ namespace toynncore
                 Math.Tanh,
                 y => 1 - (y * y)
             );
-        }
 
-        class ActivationFunction
-        {
-            public Func<double, double> func { get; }
-            public Func<double, double> fund { get; }
+            public Func<double, double> FunctionX { get; }
 
-            public ActivationFunction(Func<double, double> x, Func<double, double> y)
+            public Func<double, double> FunctionY { get; }
+
+            public ActivationFunction(Func<double, double> functionX, Func<double, double> functionY)
             {
-                this.func = x;
-                this.fund = y;
+                FunctionX = functionX;
+                FunctionY = functionY;
             }
         }
     }
