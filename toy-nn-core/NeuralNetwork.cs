@@ -54,65 +54,61 @@ namespace toynncore
 
         private ActivationFunction _activationFunction { get; } = ActivationFunctions.Sigmoid;
 
-        public double[] Predict(params double[] inputs)
+        public double[] Predict(params double[] inputsArray)
         {
-            if (inputs.Length != InputNodes)
-                throw new ArgumentException($"Inputs should be the same amount as the input nodes. Expected {InputNodes} got {inputs.Length}");
+            if (inputsArray.Length != InputNodes)
+                throw new ArgumentException($"Inputs should be the same amount as the input nodes. Expected {InputNodes} got {inputsArray.Length}");
 
-            var inputsMatrix = Matrix<double>.Build.DenseOfColumnArrays(inputs);
-            var hidden = ((WeightsIh * inputsMatrix) + BiasH).Map(_activationFunction.func);
 
-            var outputs = ((WeightsHo * hidden) + BiasO).Map(_activationFunction.func);
+            var outputs = Matrix<double>.Build.DenseOfColumnArrays(inputsArray);
+            for (int i = 0; i < _layers.Length - 1; i++)
+            {
+                var weight = _weights[i];
+                var bias = _biases[i];
+                var layer = ((weight * outputs) + bias).Map(_activationFunction.func);
+                outputs = layer;
+            }
             return outputs.Column(0).ToArray();
         }
 
         public void Train(double[] inputsArray, double[] targetsArray)
         {
             if (inputsArray.Length != InputNodes)
-                throw new ArgumentException($"Inputs should be the same amount as the input nodes. Expected {InputNodes} got {inputs.Length}");
+                throw new ArgumentException($"Inputs should be the same amount as the input nodes. Expected {InputNodes} got {inputsArray.Length}");
 
             if (targetsArray.Length != OutputNodes)
-                throw new ArgumentException($"Targets should be the same amount as the output nodes. Expected {OutputNodes} got {targets.Length}");
+                throw new ArgumentException($"Targets should be the same amount as the output nodes. Expected {OutputNodes} got {targetsArray.Length}");
 
 
             var inputs = Matrix<double>.Build.DenseOfColumnArrays(inputsArray);
             var targets = Matrix<double>.Build.DenseOfColumnArrays(targetsArray);
             var layers = new Matrix<double>[_layers.Length];
             layers[0] = inputs;
-            layers[_layers.Length - 1] = targets;
-
             //Setup layers
-            for (int i = 1; i < _layers.Length; i++) {
+            for (int i = 1; i < _layers.Length; i++)
+            {
                 var weight = _weights[i - 1];
                 var bias = _biases[i - 1];
                 var layer = (weight * inputs) + bias;
                 layer.Map(_activationFunction.func, layer);
+
                 layers[i] = layer;
+                inputs = layer;
             }
 
+            for (int i = _layers.Length - 1; i > 0; i--)
+            {
+                var errors = targets - layers[i];
 
-            //var hidden = ((WeightsIh * inputsMatrix) + BiasH).Map(aFunction.x);
+                var gradients = layers[i].Map(_activationFunction.fund).PointwiseMultiply(errors) * learningRate;
+                var deltas = gradients * layers[i - 1].Transpose();
 
-            //var outputs = ((WeightsHo * hidden) + BiasO).Map(aFunction.x);
+                _biases[i - 1] += gradients;
+                _weights[i - 1] += deltas;
 
-            //var outputErrors = targetsMatrix - outputs;
-            //var outputGradient = outputs.Map(aFunction.y) * outputErrors * learningRate;
-
-            ////hidden -> output delta
-            //var hoDelta = outputGradient * hidden.Transpose();
-            //WeightsHo += hoDelta;
-            //BiasO += outputGradient;
-
-            //var hiddenErrors = WeightsHo.Transpose() * outputErrors;
-
-            //var hiddenGradient = hidden.Map(aFunction.y).PointwiseMultiply(hiddenErrors) * learningRate;
-
-            ////input -> hidden delta
-            //var ihDelta = hiddenGradient * inputsMatrix.Transpose();
-            //WeightsIh += ihDelta;
-            //BiasH += hiddenGradient;
-
-            //return outputErrors[0, 0];
+                var prevErrors = _weights[i - 1].Transpose() * errors;
+                targets = prevErrors + layers[i - 1];
+            }
         }
 
         private double Rng(int arg1, int arg2)
