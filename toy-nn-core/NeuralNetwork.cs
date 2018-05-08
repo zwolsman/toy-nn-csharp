@@ -43,7 +43,7 @@ namespace toynncore
                 throw new ArgumentException($"Inputs should be the same amount as the input nodes. Expected {InputNodes} got {inputsArray.Length}");
             
             var outputs = Matrix<double>.Build.DenseOfColumnArrays(inputsArray);
-            for (int i = 0; i < _layers.Length - 1; i++)
+            for (var i = 0; i < _layers.Length - 1; i++)
             {
                 var weight = _weights[i];
                 var bias = _biases[i];
@@ -66,7 +66,7 @@ namespace toynncore
             var layers = new Matrix<double>[_layers.Length];
             layers[0] = inputs;
             //Setup layers
-            for (int i = 1; i < _layers.Length; i++)
+            for (var i = 1; i < _layers.Length; i++)
             {
                 var weight = _weights[i - 1];
                 var bias = _biases[i - 1];
@@ -77,7 +77,7 @@ namespace toynncore
                 inputs = layer;
             }
 
-            for (int i = _layers.Length - 1; i > 0; i--)
+            for (var i = _layers.Length - 1; i > 0; i--)
             {
                 var errors = targets - layers[i];
 
