@@ -36,7 +36,7 @@ namespace xor_console
 
         private static void Main(string[] args)
         {
-            var nn = new NeuralNetwork(2, 8, 4,2, 1);
+            var nn = new NeuralNetwork(new[] {2, 8, 4, 2, 1});
             var rng = new Random();
 
             var resetTop = Console.CursorTop;

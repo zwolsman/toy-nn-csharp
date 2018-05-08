@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using MathNet.Numerics.LinearAlgebra;
 
@@ -13,19 +14,20 @@ namespace toynncore
         private readonly Matrix<double>[] _biases;
         private readonly int[] _layers;
 
-        public NeuralNetwork(params int[] layers)
+        public NeuralNetwork(IEnumerable<int> layers)
         {
-            if (layers.Length < 3)
+            _layers = layers.ToArray();
+
+            if (_layers.Length < 3)
+                throw new ArgumentException($"Layers should be greater than 3. Got {_layers.Length}");
+            
+            _weights = new Matrix<double>[_layers.Length - 1];
+            _biases = new Matrix<double>[_layers.Length - 1];
+
+            for (var i = 1; i < _layers.Length; i++)
             {
-                throw new ArgumentException($"Layers should be greater than 3. Got {layers.Length}");
-            }
-            _layers = layers;
-            _weights = new Matrix<double>[layers.Length - 1];
-            _biases = new Matrix<double>[layers.Length - 1];
-            for (var i = 1; i < layers.Length; i++)
-            {
-                _weights[i - 1] = Matrix<double>.Build.Dense(layers[i], layers[i - 1], Rng);
-                _biases[i - 1] = Matrix<double>.Build.Dense(layers[i], 1, Rng);
+                _weights[i - 1] = Matrix<double>.Build.Dense(_layers[i], _layers[i - 1], Rng);
+                _biases[i - 1] = Matrix<double>.Build.Dense(_layers[i], 1, Rng);
             }
         }
 
