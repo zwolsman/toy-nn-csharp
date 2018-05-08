@@ -31,11 +31,9 @@ namespace toynncore
             }
         }
 
-        public int InputNodes => _layers[0];
-
-        public int[] HiddenNodes => _layers.Skip(1).Take(_layers.Length - 2).ToArray();
-
-        public int OutputNodes => _layers[_layers.Length - 1];
+        private int InputNodes => _layers.First();
+        
+        private int OutputNodes => _layers.Last();
 
         private ActivationFunction _activationFunction { get; } = ActivationFunctions.Sigmoid;
 
