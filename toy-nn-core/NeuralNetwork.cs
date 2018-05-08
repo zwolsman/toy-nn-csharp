@@ -58,8 +58,7 @@ namespace toynncore
         {
             if (inputsArray.Length != InputNodes)
                 throw new ArgumentException($"Inputs should be the same amount as the input nodes. Expected {InputNodes} got {inputsArray.Length}");
-
-
+            
             var outputs = Matrix<double>.Build.DenseOfColumnArrays(inputsArray);
             for (int i = 0; i < _layers.Length - 1; i++)
             {
@@ -78,7 +77,6 @@ namespace toynncore
 
             if (targetsArray.Length != OutputNodes)
                 throw new ArgumentException($"Targets should be the same amount as the output nodes. Expected {OutputNodes} got {targetsArray.Length}");
-
 
             var inputs = Matrix<double>.Build.DenseOfColumnArrays(inputsArray);
             var targets = Matrix<double>.Build.DenseOfColumnArrays(targetsArray);

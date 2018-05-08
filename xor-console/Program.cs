@@ -42,8 +42,8 @@ namespace xor_console
 
         private static void Main(string[] args)
         {
-            var nn = new NeuralNetwork(2, 4, 1);
-            var rng = new Random(); 
+            var nn = new NeuralNetwork(2, 8, 4,2, 1);
+            var rng = new Random();
 
             var resetTop = Console.CursorTop;
             var rows = 20.0;
@@ -57,7 +57,7 @@ namespace xor_console
                 {
                     var training = _trainings[rng.Next(_trainings.Length)];
                     nn.Train(training.Inputs, training.Targets);
-                    var result =nn.Predict(training.Inputs)[0];
+                    var result = nn.Predict(training.Inputs)[0];
                     var expected = training.Targets[0];
                     cost += Math.Abs(expected - result);
                 }
