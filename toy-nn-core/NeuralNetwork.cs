@@ -25,10 +25,12 @@ namespace toynncore
             _weights = new Matrix<double>[_layers.Length - 1];
             _biases = new Matrix<double>[_layers.Length - 1];
 
+            double ScaledRandom(int left, int right) => (_random.NextDouble() * 2) - 1;
+            
             for (var i = 1; i < _layers.Length; i++)
             {
-                _weights[i - 1] = Matrix<double>.Build.Dense(_layers[i], _layers[i - 1], Rng);
-                _biases[i - 1] = Matrix<double>.Build.Dense(_layers[i], 1, Rng);
+                _weights[i - 1] = Matrix<double>.Build.Dense(_layers[i], _layers[i - 1], ScaledRandom);
+                _biases[i - 1] = Matrix<double>.Build.Dense(_layers[i], 1, ScaledRandom);
             }
         }
 
@@ -49,6 +51,7 @@ namespace toynncore
                 var layer = ((weight * outputs) + bias).Map(_activationFunction.FunctionX);
                 outputs = layer;
             }
+
             return outputs.Column(0).ToArray();
         }
 
@@ -64,6 +67,7 @@ namespace toynncore
             var targets = Matrix<double>.Build.DenseOfColumnArrays(targetsArray);
             var layers = new Matrix<double>[_layers.Length];
             layers[0] = inputs;
+
             //Setup layers
             for (var i = 1; i < _layers.Length; i++)
             {
@@ -90,11 +94,7 @@ namespace toynncore
                 targets = prevErrors + layers[i - 1];
             }
         }
-
-        private double Rng(int arg1, int arg2)
-        {
-            return (_random.NextDouble() * 2) - 1;
-        }
+        
 
         private class ActivationFunction
         {
