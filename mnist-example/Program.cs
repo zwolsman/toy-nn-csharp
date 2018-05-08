@@ -14,10 +14,8 @@ namespace mnist_example
 
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
             var trainLabels = File.ReadAllBytes("data/train-labels.idx1-ubyte").Skip(sizeof(int) * 2).ToArray();
             var trainImages = File.ReadAllBytes("data/train-images.idx3-ubyte").Skip(sizeof(int)).ToArray();
-
 
             var totalImages = ReadInt(trainImages);
             var rows = ReadInt(trainImages, sizeof(int));
