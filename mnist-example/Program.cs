@@ -44,7 +44,7 @@ namespace mnist_example
             //Cleanup?
             trainLabels = null;
             trainImages = null;
-
+            Console.Write("Guess: -");
             var nn = new NeuralNetwork(inputs, 128, 32, 16, 10);
             while(true) {
                 for (int i = 0; i < Cycli; i++) {
@@ -54,9 +54,9 @@ namespace mnist_example
 
                 var result = nn.Predict(trainingData[tindex].Item2).ToList();
                 var digit = result.IndexOf(result.Max());
-                Console.WriteLine(digit);
-                Console.CursorLeft = 0;
-                Console.CursorTop -= 1;
+                Console.CursorLeft -= 1;
+                Console.Write(digit);
+               
             }
         }
 
