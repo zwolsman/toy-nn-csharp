@@ -6,12 +6,13 @@ namespace toynncore
 {
     public class NeuralNetwork
     {
-        private readonly double learningRate = 0.1;
-        private readonly Random random = new Random();
-        private Matrix<double>[] _weights;
-        private Matrix<double>[] _biases;
+        private const double LEARNING_RATE = 0.1;
 
-        private int[] _layers;
+        private readonly Random _random = new Random();
+        private readonly Matrix<double>[] _weights;
+        private readonly Matrix<double>[] _biases;
+        private readonly int[] _layers;
+
         public NeuralNetwork(params int[] layers)
         {
             if (layers.Length < 3)
@@ -98,7 +99,7 @@ namespace toynncore
             {
                 var errors = targets - layers[i];
 
-                var gradients = layers[i].Map(_activationFunction.fund).PointwiseMultiply(errors) * learningRate;
+                var gradients = layers[i].Map(_activationFunction.fund).PointwiseMultiply(errors) * LEARNING_RATE;
                 var deltas = gradients * layers[i - 1].Transpose();
 
                 _biases[i - 1] += gradients;
@@ -111,12 +112,12 @@ namespace toynncore
 
         private double Rng(int arg1, int arg2)
         {
-            return (random.NextDouble() * 2) - 1;
+            return (_random.NextDouble() * 2) - 1;
         }
 
         static class ActivationFunctions
         {
-            public static ActivationFunction Sigmoid = new ActivationFunction(
+            public static readonly ActivationFunction Sigmoid = new ActivationFunction(
                 x => 1 / (1 + Math.Exp(-x)),
                 y => y * (1 - y)
             );
