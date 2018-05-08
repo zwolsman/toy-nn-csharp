@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using MathNet.Numerics.LinearAlgebra;
 
 namespace toynncore
@@ -7,26 +8,51 @@ namespace toynncore
     {
         private readonly double learningRate = 0.1;
         private readonly Random random = new Random();
-        private Matrix<double> WeightsHo;
-        private Matrix<double> WeightsIh;
-        private Matrix<double> BiasH;
-        private Matrix<double> BiasO;
+        private Matrix<double>[] _weights;
+        private Matrix<double>[] _biases;
 
-        public NeuralNetwork(int input, int hidden, int output)
+        private int[] _layers;
+        public NeuralNetwork(params int[] layers)
         {
-            InputNodes = input;
-            HiddenNodes = hidden;
-            OutputNodes = output;
-            InitMatrices();
+            if (layers.Length < 3)
+            {
+                throw new ArgumentException($"Layers should be greater than 3. Got {layers.Length}");
+            }
+            _layers = layers;
+            _weights = new Matrix<double>[layers.Length - 1];
+            _biases = new Matrix<double>[layers.Length - 1];
+            for (var i = 1; i < layers.Length; i++)
+            {
+                _weights[i - 1] = Matrix<double>.Build.Dense(layers[i], layers[i - 1], Rng);
+                _biases[i - 1] = Matrix<double>.Build.Dense(layers[i], 1, Rng);
+            }
         }
 
-        public int InputNodes { get; }
+        public int InputNodes
+        {
+            get
+            {
+                return _layers[0];
+            }
+        }
 
-        public int HiddenNodes { get; }
+        public int[] HiddenNodes
+        {
+            get
+            {
+                return _layers.Skip(1).Take(_layers.Length - 2).ToArray();
+            }
+        }
 
-        public int OutputNodes { get; }
+        public int OutputNodes
+        {
+            get
+            {
+                return _layers[_layers.Length - 1];
+            }
+        }
 
-        private ActivationFunction aFunction { get; } = ActivationFunctions.Sigmoid;
+        private ActivationFunction _activationFunction { get; } = ActivationFunctions.Sigmoid;
 
         public double[] Predict(params double[] inputs)
         {
@@ -34,58 +60,64 @@ namespace toynncore
                 throw new ArgumentException($"Inputs should be the same amount as the input nodes. Expected {InputNodes} got {inputs.Length}");
 
             var inputsMatrix = Matrix<double>.Build.DenseOfColumnArrays(inputs);
-            var hidden = ((WeightsIh * inputsMatrix) + BiasH).Map(aFunction.x);
+            var hidden = ((WeightsIh * inputsMatrix) + BiasH).Map(_activationFunction.func);
 
-            var outputs = ((WeightsHo * hidden) + BiasO).Map(aFunction.x);
+            var outputs = ((WeightsHo * hidden) + BiasO).Map(_activationFunction.func);
             return outputs.Column(0).ToArray();
         }
 
-        public double Train(double[] inputs, double[] targets)
+        public void Train(double[] inputsArray, double[] targetsArray)
         {
-            if (inputs.Length != InputNodes)
+            if (inputsArray.Length != InputNodes)
                 throw new ArgumentException($"Inputs should be the same amount as the input nodes. Expected {InputNodes} got {inputs.Length}");
 
-            if (targets.Length != OutputNodes)
+            if (targetsArray.Length != OutputNodes)
                 throw new ArgumentException($"Targets should be the same amount as the output nodes. Expected {OutputNodes} got {targets.Length}");
 
-            var inputsMatrix = Matrix<double>.Build.DenseOfColumnArrays(inputs);
-            var targetsMatrix = Matrix<double>.Build.DenseOfColumnArrays(targets);
 
-            var hidden = ((WeightsIh * inputsMatrix) + BiasH).Map(aFunction.x);
+            var inputs = Matrix<double>.Build.DenseOfColumnArrays(inputsArray);
+            var targets = Matrix<double>.Build.DenseOfColumnArrays(targetsArray);
+            var layers = new Matrix<double>[_layers.Length];
+            layers[0] = inputs;
+            layers[_layers.Length - 1] = targets;
 
-            var outputs = ((WeightsHo * hidden) + BiasO).Map(aFunction.x);
+            //Setup layers
+            for (int i = 1; i < _layers.Length; i++) {
+                var weight = _weights[i - 1];
+                var bias = _biases[i - 1];
+                var layer = (weight * inputs) + bias;
+                layer.Map(_activationFunction.func, layer);
+                layers[i] = layer;
+            }
 
-            var outputErrors = targetsMatrix - outputs;
-            var outputGradient = outputs.Map(aFunction.y) * outputErrors * learningRate;
 
-            //hidden -> output delta
-            var hoDelta = outputGradient * hidden.Transpose();
-            WeightsHo += hoDelta;
-            BiasO += outputGradient;
+            //var hidden = ((WeightsIh * inputsMatrix) + BiasH).Map(aFunction.x);
 
-            var hiddenErrors = WeightsHo.Transpose() * outputErrors;
+            //var outputs = ((WeightsHo * hidden) + BiasO).Map(aFunction.x);
 
-            var hiddenGradient = hidden.Map(aFunction.y).PointwiseMultiply(hiddenErrors) * learningRate;
+            //var outputErrors = targetsMatrix - outputs;
+            //var outputGradient = outputs.Map(aFunction.y) * outputErrors * learningRate;
 
-            //input -> hidden delta
-            var ihDelta = hiddenGradient * inputsMatrix.Transpose();
-            WeightsIh += ihDelta;
-            BiasH += hiddenGradient;
+            ////hidden -> output delta
+            //var hoDelta = outputGradient * hidden.Transpose();
+            //WeightsHo += hoDelta;
+            //BiasO += outputGradient;
 
-            return outputErrors[0, 0];
+            //var hiddenErrors = WeightsHo.Transpose() * outputErrors;
+
+            //var hiddenGradient = hidden.Map(aFunction.y).PointwiseMultiply(hiddenErrors) * learningRate;
+
+            ////input -> hidden delta
+            //var ihDelta = hiddenGradient * inputsMatrix.Transpose();
+            //WeightsIh += ihDelta;
+            //BiasH += hiddenGradient;
+
+            //return outputErrors[0, 0];
         }
 
-        private double rng(int arg1, int arg2)
+        private double Rng(int arg1, int arg2)
         {
             return (random.NextDouble() * 2) - 1;
-        }
-
-        private void InitMatrices()
-        {
-            WeightsIh = Matrix<double>.Build.Dense(HiddenNodes, InputNodes, rng);
-            WeightsHo = Matrix<double>.Build.Dense(OutputNodes, HiddenNodes, rng);
-            BiasH = Matrix<double>.Build.Dense(HiddenNodes, 1, rng);
-            BiasO = Matrix<double>.Build.Dense(OutputNodes, 1, rng);
         }
 
         static class ActivationFunctions
@@ -103,13 +135,13 @@ namespace toynncore
 
         class ActivationFunction
         {
-            public Func<double, double> x { get; }
-            public Func<double, double> y { get; }
+            public Func<double, double> func { get; }
+            public Func<double, double> fund { get; }
 
             public ActivationFunction(Func<double, double> x, Func<double, double> y)
             {
-                this.x = x;
-                this.y = y;
+                this.func = x;
+                this.fund = y;
             }
         }
     }
