@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using toynncore;
@@ -16,7 +17,7 @@ namespace xor_console
 
     internal class Program
     {
-        private static readonly TrainingData[] _trainings =
+        private static readonly IReadOnlyList<TrainingData> _trainings = new[]
         {
             new TrainingData
             {
@@ -55,7 +56,7 @@ namespace xor_console
                 var cycli = 50;
                 for (var i = 0; i < cycli; i++)
                 {
-                    var training = _trainings[rng.Next(_trainings.Length)];
+                    var training = _trainings[rng.Next(_trainings.Count)];
                     nn.Train(training.Inputs, training.Targets);
                     var result = nn.Predict(training.Inputs)[0];
                     var expected = training.Targets[0];
