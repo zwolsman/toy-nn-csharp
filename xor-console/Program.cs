@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Drawing;
 using toynncore;
+using System.Linq;
 using Console = Colorful.Console;
 
 namespace xor_console
@@ -41,7 +42,7 @@ namespace xor_console
 
         private static void Main(string[] args)
         {
-            var nn = new NeuralNetwork(2, 4, 1);
+            var nn = new NeuralNetwork(2, 8, 4,2, 1);
             var rng = new Random();
 
             var resetTop = Console.CursorTop;
@@ -50,13 +51,18 @@ namespace xor_console
 
             while (true)
             {
-                for (var i = 0; i < 10; i++)
+                var cost = 0.0;
+                var cycli = 50;
+                for (var i = 0; i < cycli; i++)
                 {
                     var training = _trainings[rng.Next(_trainings.Length)];
-                    var gradient = nn.Train(training.Inputs, training.Targets);
-
-                    Debug.WriteLine(gradient);
+                    nn.Train(training.Inputs, training.Targets);
+                    var result = nn.Predict(training.Inputs)[0];
+                    var expected = training.Targets[0];
+                    cost += Math.Abs(expected - result);
                 }
+                cost /= cycli;
+                Debug.WriteLine("Cost: {0}", cost);
 
                 for (var x = 0; x <= cols; x++)
                 {
